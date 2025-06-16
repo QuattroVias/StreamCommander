@@ -34,7 +34,7 @@
 
 ## 💬 Поддержка и сообщество
 
-- Telegram: [@QuattroVias](https://t.me/StreamCommander)
+- Telegram: [@StreamCommander](https://t.me/StreamCommander)
 
 ---
 
