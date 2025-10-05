@@ -1,7 +1,6 @@
 # Stream Commander
 
 **Версия:** 1.1.38  
-**Portable version**
 
 ---
 
