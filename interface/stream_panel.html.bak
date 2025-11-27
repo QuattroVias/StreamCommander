@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель для стрима</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            background: transparent; /* Для оверлея на стримах */
+            color: #fff;
+        }
+        .panel {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, rgba(30, 30, 50, 0.9), rgba(10, 10, 20, 0.9));
+            border-radius: 15px;
+            padding: 20px;
+            width: 380px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6), 0 0 30px rgba(0, 255, 153, 0.2);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            overflow: hidden;
+        }
+        .panel h2 {
+            margin: 0 0 20px;
+            font-size: 24px;
+            font-weight: 700;
+            text-align: center;
+            color: #00ff99;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px rgba(0, 255, 153, 0.5);
+        }
+        .data-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 17px;
+            padding: 2px;
+            border-radius: 8px;
+            transition: all 0.4s ease;
+        }
+        .data-item.updated {
+            background: rgba(0, 255, 153, 0.25);
+            transform: scale(1.02);
+            animation: glow 4s ease-out forwards;
+        }
+        @keyframes glow {
+            to {
+                background: transparent;
+                transform: scale(1);
+            }
+        }
+        .data-item span:first-child {
+            font-weight: 700;
+            color: #e0e0e0;
+        }
+        .data-item span:last-child {
+            color: #ffcc00;
+        }
+        .user {
+            color: #00ff99;
+            text-shadow: 0 0 5px rgba(0, 255, 153, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="panel">
+        <h2>Статистика стрима</h2>
+        <div id="subscription-user" class="data-item"><span>Отслеживает канал:</span> <span class="user">-</span></div>
+        <div id="portal-user" class="data-item"><span>Пришедший из портала:</span> <span class="user">-</span></div>
+        <div id="raid-user" class="data-item"><span>Рейдер:</span> <span class="user">-</span></div>
+        <div id="raid-count" class="data-item"><span>Количество рейдов:</span> <span>-</span></div>
+        <div id="event-user" class="data-item"><span>Активировал событие:</span> <span class="user">-</span></div>
+        <div id="follow-user" class="data-item"><span>Новый подписчик:</span> <span class="user">-</span></div>
+        <div id="clip-user" class="data-item"><span>Автор клипа:</span> <span class="user">-</span></div>
+        <div id="like-count" class="data-item"><span>Количество лайков:</span> <span>-</span></div>
+        <div id="reward-user" class="data-item"><span>Заказал награду:</span> <span class="user">-</span></div>
+    </div>
+
+    <script>
+        const files = {
+            'subscription_user': 'subscription_user_display.html',
+            'portal_user': 'portal_user_display.html',
+            'raid_user': 'raid_user_display.html',
+            'raid_count': 'raid_count_display.html',
+            'event_user': 'event_user_display.html',
+            'follow_user': 'follow_user_display.html',
+            'clip_user': 'clip_user_display.html',
+            'like_count': 'like_count_display.html',
+            'reward_user': 'reward_user_display.html'
+
+        };
+
+        const cache = {};
+
+        async function loadFile(file) {
+            try {
+                const url = `${file}?t=${Date.now()}`; // Cache-busting
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`File ${file} not found`);
+                const text = await response.text();
+                // Парсим HTML
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, 'text/html');
+                // Проверяем id="count" для счетчиков и id="user" для пользователей
+                let textContent = '-';
+                if (file === 'like_count_display.html' || file === 'raid_count_display.html') {
+                    textContent = doc.getElementById('count')?.innerText.trim() || '-';
+                } else {
+                    textContent = doc.getElementById('user')?.innerText.trim() || '-';
+                }
+                // Проверяем, не содержит ли текстContent JavaScript-код или некорректные данные
+                if (textContent.includes('setInterval') || 
+                    textContent.includes('fetch') || 
+                    textContent.includes('Статистика стрима')) {
+                    console.warn(`Invalid content in ${file}: "${textContent}". Skipping update.`);
+                    return null;
+                }
+                console.log(`Loaded ${file}: "${textContent}"`);
+                return textContent;
+            } catch (error) {
+                console.error(`Ошибка загрузки ${file}:`, error);
+                return null; // Не затираем старые данные
+            }
+        }
+
+        async function updatePanel() {
+            for (const [key, file] of Object.entries(files)) {
+                const value = await loadFile(file);
+                if (value === null) continue; // Пропускаем, если файл не загрузился или содержит некорректные данные
+                const elementId = `${key.replace('_', '-')}`;
+                const target = document.querySelector(`#${elementId} span:last-child`);
+                if (target && cache[key] !== value) {
+                    console.log(`Updating ${elementId} to: "${value}"`);
+                    target.textContent = value;
+                    const parent = target.parentElement;
+                    parent.classList.add('updated');
+                    setTimeout(() => parent.classList.remove('updated'), 4000);
+                    cache[key] = value;
+                }
+            }
+        }
+
+        // Первоначальная загрузка
+        (async () => {
+            console.log('Starting initial load...');
+            await updatePanel();
+            console.log('Initial load completed.');
+        })();
+
+        // Проверка изменений каждые 500 мс
+        setInterval(() => {
+            console.log('Checking for updates...');
+            updatePanel();
+        }, 500);
+    </script>
+</body>
+</html>

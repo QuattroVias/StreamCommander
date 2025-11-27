@@ -1,0 +1,18 @@
+const { contextBridge, ipcRenderer } = require('electron');
+
+contextBridge.exposeInMainWorld('overlayAPI', {
+  toggleOverlay: (shouldShow) => ipcRenderer.send('toggle-overlay', shouldShow),
+  updateWindowSize: (width, height) => ipcRenderer.send('update-window-size', { width, height }),
+  updateZoomFactor: (zoom) => ipcRenderer.send('update-zoom-factor', zoom)
+});
+win.webContents.on('did-finish-load', () => {
+  win.webContents.insertCSS(`
+    html, body {
+      background-color: rgba(255, 255, 255, 0.3) !important; /* полупрозрачный фон */
+      opacity: 0.7 !important; /* полупрозрачный весь контент */
+    }
+  `);
+
+  const zoom = (currentConfig.chat_zoomov || 10) / 10;
+  win.webContents.setZoomFactor(zoom);
+});

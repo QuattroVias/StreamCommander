@@ -1,0 +1,977 @@
+window.addEventListener('load', async () => {
+  console.log("Все ресурсы загружены");
+
+  const isMainWindow = document.getElementById('volumeSlider') !== null;
+  const isQueueWindow = document.getElementById('queueList') !== null;
+
+  if (window.pywebview) {
+    if (isMainWindow) {
+      // === MAIN WINDOW ===
+      try {
+        // Получаем громкость
+        const volume = await pywebview.api.get_volume();
+        console.log('Загруженная громкость:', volume);
+
+        // Проверяем, что volume - число
+        if (typeof volume === 'number') {
+          updateVolume(volume);  // Обновляем ползунок громкости
+        } else {
+          console.error("Ошибка: Неверное значение громкости:", volume);
+        }
+      } catch (err) {
+        console.error("Ошибка при получении громкости:", err);
+      }
+
+      // Остальной код для загрузки данных
+      const maxVideoLength = await pywebview.api.get_max_video_length();
+      document.getElementById('maxVideoLength').value = maxVideoLength;
+
+      const keywords = await pywebview.api.get_keywords();
+      updateKeywordList(keywords);
+
+      const logs = await pywebview.api.get_logs();
+      logs.forEach(l => appendLog(l));
+    }
+
+    if (isQueueWindow) {
+      // === QUEUE WINDOW ===
+      const queue = await pywebview.api.get_queue();
+      updateQueue(queue);
+    }
+  }
+
+  // Автообновление очереди только в окне очереди
+  if (isQueueWindow) {
+    setInterval(async () => {
+      if (window.pywebview) {
+        const queue = await pywebview.api.get_queue();
+        updateQueue(queue);
+      }
+    }, 4000);
+  }
+});
+
+function updateChatWidthY(value) {
+  console.log("[JS] updateChatWidthY:", value);
+  const input = document.getElementById('chatWidthY'); // ✅ должно совпадать с HTML
+  if (input) input.value = value;
+}
+function updateChatWidthX(value) {
+  console.log("[JS] updateChatWidthX:", value);
+  const input = document.getElementById('chatWidthX'); // ✅ должно совпадать с HTML
+  if (input) input.value = value;
+}
+function updateChatWidthOv(value) {
+  console.log("[JS] updateChatWidthOv:", value);
+  const input = document.getElementById('chatWidthOv'); // ✅ должно совпадать с HTML
+  if (input) input.value = value;
+}
+function updateChatHeightOv(value) {
+  console.log("[JS] updateChatHeightOv:", value);
+  const input = document.getElementById('chatHeightOv');
+  if (input) input.value = value;
+}
+function updateChatZoomOv(value) {
+  console.log("[JS] updateChatZoomOv:", value);
+  const input = document.getElementById('chatZoomOv');
+  if (input) input.value = value;
+}
+
+
+  function updateChatWidth(value) {
+    console.log("[JS] updateChatWidth:", value);
+    const input = document.getElementById('chatWidth');
+    if (input) input.value = value;
+  }
+  function updateChatHeight(value) {
+    console.log("[JS] updateChatHeight:", value);
+    const input = document.getElementById('chatHeight');
+    if (input) input.value = value;
+  }
+  function updateChatTimeout(value) {
+    console.log("[JS] updateChatTimeout:", value);
+    const input = document.getElementById('chatTimeout');
+    if (input) input.value = value;
+  }
+  function updateChatLimit(value) {
+    console.log("[JS] updateChatLimit:", value);
+    const input = document.getElementById('chatMaxMessages');
+    if (input) input.value = value;
+  }
+
+
+// === Громкость ===
+function updateVolume(volume) {
+    const slider = document.getElementById('volumeSlider');
+    const label = document.getElementById('volumeLabel');
+
+    console.log("[DEBUG] updateVolume вызван с:", volume);
+
+    slider.value = volume;
+    label.innerText = volume;
+}
+
+function onVolumeSliderChange(val) {
+  console.log("[DEBUG] Изменение громкости через ползунок:", val);  // Отладка
+  updateVolume(val);
+  if (window.pywebview) {
+    pywebview.api.set_volume(val);
+  }
+}
+
+// Обработчик для клика на ползунок
+document.getElementById('volumeSlider').addEventListener('input', (e) => {
+  const value = e.target.value;
+  onVolumeSliderChange(value);  // Обновляем громкость через функцию
+});
+
+
+// === Громкость VLC ===
+function updateVlcVolume(volume) {
+    const slider = document.getElementById('vlcVolumeSlider');
+    const label = document.getElementById('vlcVolumeLabel');
+
+    console.log("[DEBUG] updateVlcVolume вызван с:", volume);
+
+    slider.value = volume;
+    label.innerText = volume;
+}
+
+function onVlcVolumeSliderChange(val) {
+    console.log("[DEBUG] Изменение громкости VLC через ползунок:", val);
+    updateVlcVolume(val);
+    if (window.pywebview) {
+        pywebview.api.set_vlc_volume(val);  // Вызов Python API
+    }
+}
+
+// Обработчик для ползунка VLC
+document.getElementById('vlcVolumeSlider').addEventListener('input', (e) => {
+    const value = e.target.value;
+    onVlcVolumeSliderChange(value);
+});
+
+
+
+
+
+
+
+
+
+
+
+// Проверяем доступность функции
+console.log('Функция updateMaxVideoLength доступна:', typeof updateMaxVideoLength);
+// Функция для обновления максимальной длины видео
+function updateMaxVideoLength(minutes) {
+  console.log("[DEBUG] updateMaxVideoLength вызвана с:", minutes);
+  const inputField = document.getElementById('maxVideoLength');
+  if (inputField) {
+    inputField.value = minutes; // Обновляем поле ввода
+  } else {
+    console.log("[DEBUG] Элемент input не найден");
+  }
+}
+// Максимальная длина видео
+function onMaxVideoLengthChange(value) {
+    let minutes = parseInt(value);
+    if (isNaN(minutes) || minutes <= 0) {
+        minutes = 10; // если пользователь фигню введёт, сбрасываем на 10
+    }
+    let seconds = minutes * 60;
+    pywebview.api.set_max_video_length(seconds);
+}
+
+
+
+
+// Проверяем доступность функции
+console.log('Функция updateMinViews доступна:', typeof updateMinViews);
+// Функция для обновления минимального числа просмотров
+function updateMinViews(views) {
+  console.log("[DEBUG] updateMinViews вызвана с:", views);
+  const inputField = document.getElementById('minViews');
+  if (inputField) {
+    inputField.value = views; // Обновляем поле ввода
+  } else {
+    console.log("[DEBUG] Элемент input minViews не найден");
+  }
+}
+// Обработка изменения минимального количества просмотров
+function onMinViewsChange(value) {
+  let views = parseInt(value);
+  if (isNaN(views) || views <= 0) {
+    views = 1000; // дефолт если фигню ввели
+  }
+  pywebview.api.set_min_views(views);
+}
+
+
+
+
+
+
+// === Ключевые слова ===
+async function addKeyword() {
+  const input = document.getElementById('keywordInput');
+  const word = input.value.trim();
+  if (!word) return;
+  const res = await pywebview.api.add_keyword(word);
+  if (res.status === 'added') updateKeywordList(res.keywords);
+  input.value = '';
+}
+
+function updateKeywordList(list) {
+  const ul = document.getElementById('keywordsList');
+  ul.innerHTML = '';
+  list.forEach(word => {
+    const li = document.createElement('li');
+    li.textContent = word;
+    ul.appendChild(li);
+  });
+}
+
+// === Лог ===
+function appendLog(message) {
+  const logArea = document.getElementById('log');
+  logArea.value += message + '\n';
+  logArea.scrollTop = logArea.scrollHeight;
+}
+
+
+
+
+// Функция для получения прогресса (в процентах)
+function getProgress(duration) {
+  const elapsed = getElapsedTime(); // Получаем время, которое прошло (например, через WebSocket или другой источник данных)
+  return (elapsed / duration) * 100;
+}
+
+// Функция для получения прошедшего времени
+function getElapsedTime() {
+  // Это пример, в реальной ситуации вы должны получить прошедшее время из вашего плеера или API.
+  return 45; // Примерное значение для прогресса (можно заменить на реальное время)
+}
+
+
+function formatDuration(seconds) {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+}
+
+
+
+// Функция обновления мини-очереди - вынесена наружу, чтобы была видна всем
+function updateQueueMini(queue) {
+  const left = document.getElementById('queueMiniLeft');
+  const right = document.getElementById('queueMiniRight');
+  if (!left || !right) return;
+
+  left.innerHTML = '';
+  right.innerHTML = '';
+
+  // Ограничение до 6 элементов (по 3 слева и справа)
+  queue = queue.slice(0, 6);
+
+  queue.forEach((item, idx) => {
+    const li = document.createElement('li');
+    li.style.marginLeft = '0';
+    li.style.paddingLeft = '0';
+    li.className = 'row';
+    li.style.display = 'flex';
+    li.style.alignItems = 'center';
+    li.style.gap = '2px';
+    li.style.marginBottom = '2px';
+    li.style.borderRadius = '8px';
+    li.style.padding = '0px';
+    li.style.position = 'relative';
+    li.style.width = '100%';
+    li.style.maxWidth = '100%';
+    li.style.overflow = 'hidden';
+    li.style.boxSizing = 'border-box';
+
+    const wrapper = document.createElement('div');
+    wrapper.style.display = 'flex';
+    wrapper.style.alignItems = 'center';
+    wrapper.style.background = '#1a1a1a';
+    wrapper.style.padding = '4px';
+    wrapper.style.borderRadius = '8px';
+    wrapper.style.flex = '1';
+    wrapper.style.width = '100%';
+    wrapper.style.maxWidth = '100%';
+    wrapper.style.overflow = 'hidden';
+    wrapper.style.boxSizing = 'border-box';
+
+    let thumbSrc = item.thumbnail;
+    if (thumbSrc && /^[a-zA-Z]:\\/.test(thumbSrc)) {
+      thumbSrc = 'file:///' + thumbSrc.replace(/\\/g, '/');
+    }
+
+    const img = document.createElement('img');
+    img.src = thumbSrc;
+    img.alt = 'Thumbnail';
+    img.style.height = '50px';
+    img.style.width = '90px';
+    img.style.objectFit = 'contain';
+    img.style.borderRadius = '5px';
+    img.style.flexShrink = '0';
+
+    const rootStyles = getComputedStyle(document.documentElement);
+    const highlightColor = rootStyles.getPropertyValue('--favorite-item-hover-color').trim();
+
+    const info = document.createElement('div');
+    info.style.marginLeft = '8px';
+    info.style.overflow = 'hidden';
+    info.style.textOverflow = 'ellipsis';
+    info.style.whiteSpace = 'nowrap';
+    info.style.flex = '1';
+    info.style.minWidth = '0';
+    info.innerHTML =
+      `<div style="color: #f5f5f5; font-weight: bold; font-size: 13px;">${truncate(item.title, 22)}</div>
+       <div style="color: #969696; font-size: 11px;">${formatDuration(item.duration) === '0:00' ? 'playlist' : formatDuration(item.duration)}</div>
+       <div style="color: ${highlightColor}; font-size: 12px; font-weight: 700;">${truncate(item.customer, 28)}</div>`;
+
+  if (item.customer !== "Избранное") {
+    const plus = document.createElement('div');
+    plus.className = 'plus-btn btn-primary';
+    plus.textContent = '+';
+    plus.style.position = 'absolute';
+    plus.style.bottom = '4px';
+    plus.style.right = '1px';
+    plus.style.width = '24px';
+    plus.style.height = '24px';
+    plus.style.background = '#444';
+    plus.style.color = 'white';
+    plus.style.display = 'flex';
+    plus.style.alignItems = 'center';
+    plus.style.justifyContent = 'center';
+    plus.style.fontSize = '16px';
+    plus.style.fontWeight = 'bold';
+    plus.style.cursor = 'pointer';
+    plus.style.zIndex = '10';
+
+    // Добавим к plus обработчик клика, внутри он будет работать с currentItemToAdd, который объявим позже
+    plus.addEventListener('click', async (e) => {
+      e.stopPropagation();
+	  currentItemToAdd = item;
+	  await loadPlaylistsForModal();
+	  addToPlaylistModal.style.display = 'block';
+    });
+
+		wrapper.appendChild(plus);
+	  }
+
+    wrapper.appendChild(img);
+    wrapper.appendChild(info);
+    li.appendChild(wrapper);
+
+    if (idx % 2 === 0) {
+      left.appendChild(li);
+    } else {
+      right.appendChild(li);
+    }
+  });
+
+  if (queue.length > 0) {
+    updateNowPlaying(queue[0]);
+  }
+}
+
+
+
+// Текущий добавляемый элемент
+let currentItemToAdd = null;
+let addToPlaylistModal = null;
+let playlistSelectModal = null;
+let btnConfirmAddToPlaylist = null;
+let btnCancelAddToPlaylist = null;
+
+async function loadPlaylistsForModal() {
+  const playlists = await window.pywebview.api.get_playlists();
+  playlistSelectModal.innerHTML = '';
+  playlists.forEach(name => {
+    const option = document.createElement('option');
+    option.value = name;
+    option.textContent = name;
+    playlistSelectModal.appendChild(option);
+  });
+}
+// --- DOMContentLoaded ---
+document.addEventListener('DOMContentLoaded', () => {
+  addToPlaylistModal = document.getElementById('addToPlaylistModal');
+  playlistSelectModal = document.getElementById('playlistSelectModal');
+  btnConfirmAddToPlaylist = document.getElementById('btnConfirmAddToPlaylist');
+  btnCancelAddToPlaylist = document.getElementById('btnCancelAddToPlaylist');
+
+  btnConfirmAddToPlaylist.onclick = async () => {
+    console.log('Confirm clicked', currentItemToAdd); // Лог для проверки
+    if (!currentItemToAdd) {
+      alert('Нет выбранного видео для добавления');
+      return;
+    }
+    const selectedPlaylist = playlistSelectModal.value;
+    if (!selectedPlaylist) {
+      alert('Выберите плейлист');
+      return;
+    }
+    try {
+      const res = await window.pywebview.api.add_favorite_to_playlist(currentItemToAdd.title, selectedPlaylist);
+    } catch (err) {
+      alert('Ошибка при добавлении в плейлист');
+      console.error(err);
+    }
+    addToPlaylistModal.style.display = 'none';
+    currentItemToAdd = null;
+  };
+
+  btnCancelAddToPlaylist.onclick = () => {
+    console.log('Cancel clicked');
+    addToPlaylistModal.style.display = 'none';
+    currentItemToAdd = null;
+  };
+
+  // Здесь вызываем автообновление очереди и обновление списка
+  (async () => {
+    if (window.pywebview) {
+      const queue = await window.pywebview.api.get_queue();
+      updateQueueMini(queue);
+    }
+  })();
+
+  setInterval(async () => {
+    if (window.pywebview) {
+      const queue = await window.pywebview.api.get_queue();
+      updateQueueMini(queue);
+    }
+  }, 5000);
+});
+
+
+
+// Пометить видео как избранное
+function markAsFavorite(title) {
+  console.log('📤 Отправляем в Python:', title);  // <-- ДОБАВЬ ЭТО
+  if (window.pywebview) {
+    window.pywebview.api.mark_favorite(title)
+      .then(res => {
+        console.log("📥 Ответ от Python:", res);  // <-- ДОБАВЬ ЭТО
+        if (res.success) {
+          console.log("✅ Добавлено в избранное:", res.filename);
+        } else {
+          console.warn("❌ Ошибка:", res.error);
+        }
+      })
+      .catch(err => console.error("❗ Ошибка вызова API:", err));  // <-- ДОБАВЬ ЭТО
+  } else {
+    console.warn("⚠️ pywebview не найден!");
+  }
+}
+
+
+
+function renderFavoritesList(favorites) {
+  const container = document.getElementById("favoritesList");
+  container.innerHTML = "";
+
+  const grouped = {};
+
+  favorites.forEach(fav => {
+    const match = fav.filepath.match(/cache[\\/](.*?)[\\/]/);
+    const groupName = match ? match[1] : "Без плейлиста";
+
+    // 🎯 Фильтрация по выбранному плейлисту (если он выбран)
+    if (currentPlaylist && groupName !== currentPlaylist) return;
+
+    if (!grouped[groupName]) grouped[groupName] = [];
+    grouped[groupName].push(fav);
+  });
+
+  if (Object.keys(grouped).length === 0) {
+    container.innerHTML = "<i style='color: #777; padding: 4px'>Нет избранного</i>";
+    return;
+  }
+
+  for (const [groupName, groupItems] of Object.entries(grouped)) {
+	const groupHeader = document.createElement("div");
+	groupHeader.textContent = `—  ${groupName}  —`;
+	groupHeader.style.margin = "2px 2px 2px";
+	groupHeader.style.fontWeight = "bold";
+	groupHeader.style.color = "#ccc";
+	groupHeader.style.fontSize = "13px";
+	groupHeader.style.textAlign = "center";
+	container.appendChild(groupHeader);
+
+    groupItems.forEach(fav => {
+      const div = document.createElement("div");
+      div.className = "favorite-item";
+      div.style.display = "flex";
+      div.style.justifyContent = "space-between";
+      div.style.alignItems = "center";
+      div.style.padding = "1px 8px";
+      div.style.transition = "box-shadow 0.0s, background-color 0.0s";
+      div.style.borderRadius = "6px";
+
+      let isHovered = false;
+      let isOverRemoveBtn = false;
+
+      const titleSpan = document.createElement("span");
+      titleSpan.textContent = `+ ${fav.title}`;
+      titleSpan.style.cursor = "pointer";
+      titleSpan.style.width = "100%";
+      titleSpan.addEventListener("click", async () => {
+        console.log("▶️ Добавление из избранного в очередь:", fav.filename);
+        await window.pywebview.api.add_favorite_by_filename(fav.filename);
+      });
+
+      const removeBtn = document.createElement("button");
+      removeBtn.textContent = "-";
+      removeBtn.style.background = "rgb(255 68 68 / 60%)";
+      removeBtn.style.border = "none";
+      removeBtn.style.color = "#fff";
+      removeBtn.style.padding = "2px 8px";
+      removeBtn.style.marginLeft = "8px";
+      removeBtn.style.cursor = "pointer";
+      removeBtn.style.borderRadius = "4px";
+      removeBtn.title = "Удалить из избранного";
+
+      removeBtn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+
+        // 📌 Удаление работает и для подпапок
+        await window.pywebview.api.remove_favorite_by_filename(fav.filepath.replace(/^.*cache[\\/]/, ""));
+		console.log("🧹 Удаляем файл:", fav.filename);
+        loadFavorites(); // обновим
+      });
+
+      // Hover-эффекты
+      div.addEventListener("mouseenter", () => {
+        isHovered = true;
+        if (!isOverRemoveBtn) {
+          div.style.boxShadow = "0 0 4px 2px rgba(255, 165, 0, 0.5)";
+          div.style.backgroundColor = "#2a2a2a";
+        }
+      });
+
+      div.addEventListener("mouseleave", () => {
+        isHovered = false;
+        div.style.boxShadow = "none";
+        div.style.backgroundColor = "transparent";
+      });
+
+      removeBtn.addEventListener("mouseenter", () => {
+        isOverRemoveBtn = true;
+        div.style.boxShadow = "0 0 5px 2px rgba(255, 0, 0, 0.5)";
+        div.style.backgroundColor = "#331111";
+      });
+
+      removeBtn.addEventListener("mouseleave", () => {
+        isOverRemoveBtn = false;
+        if (isHovered) {
+          div.style.boxShadow = "0 0 4px 2px rgba(255, 165, 0, 0.5)";
+          div.style.backgroundColor = "#2a2a2a";
+        } else {
+          div.style.boxShadow = "none";
+          div.style.backgroundColor = "transparent";
+        }
+      });
+
+      div.appendChild(titleSpan);
+      div.appendChild(removeBtn);
+      container.appendChild(div);
+    });
+  }
+}
+
+
+
+
+
+
+
+
+
+
+document.addEventListener("DOMContentLoaded", async () => {
+  console.log('[JS] DOM готов');
+
+  // Ожидаем pywebview, если надо
+  while (!window.pywebview?.api?.get_playlists) {
+    console.log("⏳ Ожидание pywebview.api...");
+    await new Promise(res => setTimeout(res, 100));
+  }
+
+  console.log("🚀 pywebview API найден");
+
+  await loadPlaylists();
+  await loadFavorites();
+});
+
+
+
+function fillPlaylistsSelect(playlists) {
+  const select = document.getElementById("playlistSelect");
+  select.innerHTML = '<option value="">Все плейлисты</option>';
+  playlists.forEach(name => {
+    const option = document.createElement("option");
+    option.value = name;
+    option.textContent = name;
+    select.appendChild(option);
+  });
+
+  select.onchange = () => {
+    currentPlaylist = select.value || null;
+    loadFavorites();
+  };
+}
+
+function updateFavoritesList(favorites) {
+  renderFavoritesList(favorites);
+}
+
+
+
+
+window.v_list_text = 'Очередь пуста - Закажи Клип за баллы';
+function setVListUrl(val) {
+  window.v_list_text = val && val.trim() ? val : window.v_list_text;
+  const input = document.getElementById("vlist");
+  if (input) input.value = window.v_list_text;
+}
+
+
+function updateQueue(queue) {
+  const container = document.getElementById('queueList');
+  if (!container) return;
+
+  // Очистим очередь ВНЕ зависимости от содержимого
+  container.innerHTML = '';
+
+  if (queue.length === 0) {
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.colSpan = 4;
+    td.style.textAlign = 'center';
+    td.style.color = '#aaa';
+    td.style.fontSize = '26px';
+    td.style.fontWeight = 'bold';
+
+    // 🔄 Используем переменную вместо текста напрямую
+    td.textContent = window.v_list_text || 'Очередь пуста - Закажи Клип за баллы';
+
+    tr.appendChild(td);
+    container.appendChild(tr);
+    return;
+  }
+
+  queue.forEach((item, idx) => {
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.colSpan = 4;
+
+    const isPlaying = idx === 0 ? 'playing' : '';
+	
+	let thumbSrc = item.thumbnail;
+	if (thumbSrc && /^[a-zA-Z]:\\/.test(thumbSrc)) {
+	  thumbSrc = 'file:///' + thumbSrc.replace(/\\/g, '/');
+	}
+	
+	function cleanTitle(title) {
+	  return title.replace(/\s*\[[a-zA-Z0-9-_]{11}\].*$/, '').trim();
+	}
+
+    td.innerHTML = `
+      <div class="queue-item ${isPlaying}" style="display: flex; align-items: center; gap: 11px; border-radius: 8px; padding: 2px;">
+        <img src="${thumbSrc}" alt="Thumbnail" style="height: 60px; object-fit: contain; border-radius: 6px; width: 107px;" />
+        <div style="display: flex; flex-direction: column;">
+          <div style="color: #f5f5f5; font-weight: bold;">${truncate(cleanTitle(item.title), 48)}</div>
+          <div style="color: #969696; font-size: 13px;">${formatDuration(item.duration) === '0:00' ? 'playlist' : formatDuration(item.duration)}</div>
+          <div style="color: #e0c146; font-size: 13px; font-weight: 700;">${truncate(item.customer, 42)}</div>
+        </div>
+      </div>
+    `;
+
+    tr.appendChild(td);
+    container.appendChild(tr);
+  });
+
+  updateNowPlaying(queue[0]);
+}
+
+
+
+
+function updateNowPlaying(item) {
+  const now = document.getElementById('nowPlaying');
+  const cust = document.getElementById('nowCustomer');
+  if (item && now && cust) {
+    now.textContent = item.title;
+    cust.textContent = item.customer;
+  }
+}
+
+function truncate(text) {
+  const maxLength = 62;
+  return text.length <= maxLength ? text : text.slice(0, maxLength - 3) + '...';
+}
+
+// === Трекер ===
+let isTracking = false;
+async function toggleTracking() {
+  isTracking = await pywebview.api.toggle_tracking();
+  const btn = document.getElementById('trackingBtn');
+  btn.innerHTML = isTracking ? 'Остановить' : 'Запустить';
+}
+
+
+
+
+// Функция для паузы видео
+function pauseVideo() {
+    console.log("Видео приостановлено");
+    if (window.pywebview) {
+        pywebview.api.pause_video();  // Вызов метода паузы из Python
+    }
+}
+// Функция для остановки видео
+function stopVideo() {
+    console.log("Видео остановлено");
+    if (window.pywebview) {
+        pywebview.api.stop_video();  // Вызов метода остановки из Python
+    }
+}
+// Функция для пропуска видео
+function skipVideo() {
+    console.log("Видео пропущено");
+    if (window.pywebview) {
+        pywebview.api.skip_video();  // Вызов метода пропуска из Python
+    }
+}
+function resumeVideo() {
+    console.log("Видео продолжено");
+    if (window.pywebview) {
+        pywebview.api.resume_video();
+    }
+}
+
+
+
+function onVkChannelInput(value) {
+  if (window.pywebview) {
+    window.pywebview.api.set_vk_channel_url(value);
+  }
+}
+function setVkChannelUrl(value) {
+  const input = document.getElementById('vkChannel');
+  if (input) {
+    input.value = value;
+  }
+}
+function onTwitchChannelInput(value) {
+  if (window.pywebview) {
+    window.pywebview.api.set_twitch_channel_url(value);
+  }
+}
+function setTwitchChannelUrl(value) {
+  const input = document.getElementById('twitchChannel');
+  if (input) {
+    input.value = value;
+  }
+}
+
+function onVListInput(value) {
+  if (window.pywebview) {
+    window.pywebview.api.set_v_list_url(value);
+  }
+}
+
+//Запустить оверлей
+  function startOverlay() {
+    window.pywebview.api.launch_overlay().then(response => {
+      console.log(response);
+      alert(response);
+    });
+  }
+  
+  
+  
+  
+  let currentPlaylist = null;
+  const btnAddPlaylist = document.getElementById('btnAddPlaylist');
+  const btnEditPlaylist = document.getElementById('btnEditPlaylist');
+
+  const modalAdd = document.getElementById('modalAdd');
+  const inputAddName = document.getElementById('inputAddName');
+  const cancelAdd = document.getElementById('cancelAdd');
+  const confirmAdd = document.getElementById('confirmAdd');
+
+  const modalEdit = document.getElementById('modalEdit');
+  const inputEditName = document.getElementById('inputEditName');
+  const cancelEdit = document.getElementById('cancelEdit');
+  const confirmEdit = document.getElementById('confirmEdit');
+  const btnDeleteInModal = document.getElementById('btnDeletePlaylist');
+
+
+
+  // Загрузка списка плейлистов из Python
+  async function loadPlaylists() {
+    try {
+      const playlists = await window.pywebview.api.get_playlists();
+      playlistSelect.innerHTML = '<option value="">Все плейлисты</option>';
+      playlists.forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        playlistSelect.appendChild(option);
+      });
+      btnEditPlaylist.disabled = !currentPlaylist;
+    } catch (e) {
+      alert('Ошибка загрузки плейлистов');
+      console.error(e);
+    }
+  }
+
+// При выборе плейлиста
+playlistSelect.onchange = async () => {
+  console.log('playlistSelect onchange triggered, value =', playlistSelect.value);
+  currentPlaylist = playlistSelect.value || null;
+  btnEditPlaylist.disabled = !currentPlaylist;
+
+  await loadFavorites();
+
+  if (currentPlaylist) {
+    await loadPlaylistItems(currentPlaylist);
+  } else {
+    document.getElementById('playlistItems').innerHTML = '';
+    // Закрываем окно редактора, если плейлист не выбран
+    modalEdit.classList.remove('active');
+  }
+};
+
+  // Открыть окно создания плейлиста
+  btnAddPlaylist.onclick = () => {
+    inputAddName.value = '';
+    modalAdd.classList.add('active');
+    inputAddName.focus();
+  };
+
+  cancelAdd.onclick = () => {
+    modalAdd.classList.remove('active');
+  };
+
+
+	confirmAdd.onclick = async () => {
+	  const name = inputAddName.value.trim();
+	  if (!name) return alert('Введите имя плейлиста');
+
+	  const res = await window.pywebview.api.create_playlist(name);
+	  if (res.success) {
+		await loadPlaylists();
+		modalAdd.classList.remove('active');
+		playlistSelect.value = name;
+		currentPlaylist = name;
+		btnEditPlaylist.disabled = !currentPlaylist;
+
+		// Запускаем код обработки выбора плейлиста
+		await playlistSelect.onchange();
+
+		await loadFavorites();
+	  } else {
+		alert(`Ошибка создания: ${res.error}`);
+	  }
+	};
+
+
+  // Открыть окно редактирования плейлиста
+  btnEditPlaylist.onclick = () => {
+    if (!currentPlaylist) return;
+    inputEditName.value = currentPlaylist;
+    modalEdit.classList.add('active');
+    inputEditName.focus();
+  };
+
+  cancelEdit.onclick = () => {
+    modalEdit.classList.remove('active');
+  };
+
+  confirmEdit.onclick = async () => {
+    const newName = inputEditName.value.trim();
+    if (!newName) return alert('Введите новое имя');
+    if (!currentPlaylist) return;
+    const res = await window.pywebview.api.rename_playlist(currentPlaylist, newName);
+    if (res.success) {
+      await loadPlaylists();
+      playlistSelect.value = newName;
+      currentPlaylist = newName;
+      modalEdit.classList.remove('active');
+      await loadFavorites();
+    } else {
+      alert(`Ошибка переименования: ${res.error}`);
+    }
+  };
+
+// Удаление из окна редактирования
+async function updateUIOnPlaylistChange() {
+  currentPlaylist = playlistSelect.value || null;
+  btnEditPlaylist.disabled = !currentPlaylist;
+
+  await loadFavorites();
+
+  if (currentPlaylist) {
+    await loadPlaylistItems(currentPlaylist);
+  } else {
+    document.getElementById('playlistItems').innerHTML = '';
+    modalEdit.classList.remove('active'); // Закрываем редактор, если нет плейлиста
+  }
+}
+
+btnDeleteInModal.onclick = async () => {
+  if (!currentPlaylist) return;
+  if (!confirm(`Удалить плейлист "${currentPlaylist}"?`)) return;
+
+  const res = await window.pywebview.api.delete_playlist(currentPlaylist);
+  if (res.success) {
+    // Обновляем список плейлистов
+    await loadPlaylists();
+
+    // Сбрасываем выбор на "Все плейлисты"
+    playlistSelect.value = '';
+
+    // Гарантированно закрываем редактор
+    modalEdit.classList.remove('active');
+
+    // Обновляем UI
+    await updateUIOnPlaylistChange();
+
+  } else {
+    alert(`Ошибка удаления: ${res.error}`);
+  }
+};
+
+
+
+
+
+  // Загрузить избранное (фильтруется по currentPlaylist внутри Python)
+  async function loadFavorites() {
+    const favorites = await window.pywebview.api.get_favorites_from_cache_favs();
+    renderFavoritesList(favorites);
+  }
+
+  // Инициализация при загрузке страницы
+  document.addEventListener('DOMContentLoaded', async () => {
+    while (!window.pywebview?.api?.get_playlists) {
+      await new Promise(r => setTimeout(r, 100));
+    }
+    await loadPlaylists();
+    await loadFavorites();
+  });
+  
+  
+  
+ 
+
+
+
+

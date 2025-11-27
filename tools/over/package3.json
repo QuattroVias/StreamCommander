@@ -1,0 +1,12 @@
+{
+  "name": "chat-overlay2",
+  "version": "1.0.0",
+  "main": "main2.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^28.0.0"
+  }
+}

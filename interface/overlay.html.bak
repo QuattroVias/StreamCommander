@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+:root {
+  --msg-bg: rgba(251, 161, 25, 0.4);
+  --msf-bg: sans-serif;
+}
+html, body {
+  zoom: 1.6;
+  transform-origin: top left; /* необязательно */
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  color: white;
+  font-family: sans-serif;
+  overflow: hidden;
+  height: 100%;
+}
+
+#container {
+  display: flex;
+  flex-direction: column-reverse; /* Новое: сообщения снизу вверх */
+  justify-content: flex-start;
+  overflow-y: auto;
+  scrollbar-width: none;
+  width: 100%;
+  height: 100%;
+}
+#container::-webkit-scrollbar {
+  display: none;
+}
+
+
+.msg-box {
+	box-shadow: inset 1px 1px 3px rgb(250, 250, 250, 0.3), inset -1px -1px 1px rgba(250, 250, 250, 0.2);
+    text-align: justify;
+    display: flex;
+    flex-direction: column;
+    margin: 4px 1px 2px 2px;
+    padding: 0px 5px 0px 4px;
+    background: var(--msg-bg);
+    border: 1px solid rgba(30, 30, 30, 0.8);
+    border-radius: 0px 8px 8px 0px;
+    backdrop-filter: blur(10px);
+    word-break: break-word;
+    transition: all 0.8s ease-in-out;
+    box-sizing: border-box;
+}
+
+.msg-header {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    display: flex;
+    align-items: center;
+	margin-top: 1px;
+    flex-wrap: wrap;
+}
+
+.msg-time {
+    font-weight: 600;
+    font-size: 14px;
+	padding-right: 4px;
+    display: inline-block;
+}
+
+.msg-body {
+	font-family: var(--msf-bg), sans-serif;
+	letter-spacing: -0.6px;
+    overflow-wrap: anywhere;
+    font-size: 18px;
+    line-height: 1.34;
+    color: white;
+    word-wrap: break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    min-width: 0;
+}
+
+.badges img {
+    width: 30px;
+    height: 29px;
+    margin-right: 2px;
+    filter: drop-shadow(0 0 2px rgba(255,255,255,0.4));
+    vertical-align: middle;
+}
+
+.msg-username {
+	display: inline-block;
+    text-align: left;
+	letter-spacing: -0.3px;
+    font-weight: 600;
+    margin-left: 2px;
+    box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.6), inset -1px -1px 1px rgba(255, 255, 255, 0.3);
+    color: #888888;
+    background: linear-gradient(rgba(40, 40, 40, 0.1), rgba(200, 200, 200, 0.2)), var(--msg-bg);
+    padding: 3px 8px 3px 4px;
+    margin: -3px 5px 0px -4px;
+    top: 1px;
+    border-radius: 0px 0px 22px 0px;
+    border: 1px solid rgba(30, 30, 30, 0.7);
+}
+
+.msg-header::before {
+    content: "";
+    display: inline-block;
+    width: 100%;
+    height: 0;
+    margin: 0 0 -1px;
+    overflow: hidden;
+}
+
+
+
+
+
+
+.msg {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+  will-change: opacity, transform;
+  text-shadow: 0 0 1px rgba(10, 10, 10, 0.9), 0 0 1px rgba(20, 20, 20, 0.9), 0 0 1px rgba(20, 20, 20, 0.9);
+  <!-- -webkit-text-stroke: 0.02em rgba(20, 20, 10, 0.90); -->
+
+}
+
+.msg.fade-out-up {
+  opacity: 0;
+  transform: translateY(-30px);
+  pointer-events: none;
+}
+
+
+.msg-box.system {
+  background: rgba(90, 90, 90, 0.4);
+}
+.msg-box.system.msg-header {
+  top: -18px;
+}
+
+
+
+img {
+  margin: -6px 0px;
+}
+
+.quote-box {
+  box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.3), inset -1px -1px 2px rgba(255, 255, 255, 0.3);
+  width: 100%;
+  padding-right: 4px;
+  background: rgba(220,220,220,0.2);
+  margin-bottom: 2px;
+  border-left: 3px solid #888;
+  font-size: 0.8em;
+  color: #ccc;
+  border-radius: 8px;
+}
+.quote-author {
+  font-weight: bold;
+  margin-bottom: -2px;
+}
+.quote-text {
+  white-space: pre-wrap;
+  line-height: 1.2;
+}
+
+.msg-box.highlight {
+  animation: highlightFade 3s ease-in-out;
+}
+
+.msg-box.highlight::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: rgba(250, 250, 250, 0.4);
+  border: 2px solid rgba(250, 250, 250, 0.6);
+  pointer-events: none;
+  animation: glowFade 2.5s ease-out forwards;
+  z-index: 1;
+  border-radius: inherit;
+}
+
+@keyframes glowFade {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+
+.chat-line__message--emote-button{
+    display: inline-block;
+  margin: -2px 0px;
+}
+
+@font-face {
+  font-family: 'MyCustomFont1';
+  src: url('/static/black-dashboard/assets/fonts/nucleo.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MyCustomFont2';
+  src: url('/static/black-dashboard/assets/fonts/tf2.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'MyCustomFont3';
+  src: url('/static/black-dashboard/assets/fonts/tf2secondary.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'MyCustomFont4';
+  src: url('/static/black-dashboard/assets/fonts/minecraft.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'MyCustomFont5';
+  src: url('/static/black-dashboard/assets/fonts/barboskinsakzident.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'MyCustomFont6';
+  src: url('/static/black-dashboard/assets/fonts/LT_55933.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'MyCustomFont7';
+  src: url('/static/black-dashboard/assets/fonts/DINNextCYR.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'MyCustomFont8';
+  src: url('/static/black-dashboard/assets/fonts/PF Playskoo.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'MyCustomFont9';
+  src: url('/static/black-dashboard/assets/fonts/TwilightC.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'MyCustomFont10';
+  src: url('/static/black-dashboard/assets/fonts/Verdana.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'MyCustomFont11';
+  src: url('/static/black-dashboard/assets/fonts/TheCrewPro.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'MyCustomFont12';
+  src: url('/static/black-dashboard/assets/fonts/KristenITCCyrillic.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'MyCustomFont13';
+  src: url('/static/black-dashboard/assets/fonts/FoxcroftNF.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'MyCustomFont14';
+  src: url('/static/black-dashboard/assets/fonts/VHS.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'MyCustomFont15';
+  src: url('/static/black-dashboard/assets/fonts/KaaosPro.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+.animate-in {
+  animation-fill-mode: forwards;
+  animation-duration: 0.9s;
+  animation-timing-function: ease-in-out;
+}
+
+@keyframes overlay {
+  0% { opacity: 0; transform: translateY(30px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes overlay2 {
+  0% { opacity: 0; transform: translate(80px); }
+  10% { opacity: 0; transform: translateY(-80px); }
+  100% { opacity: 1; transform: translateY(0%); }
+}
+
+@keyframes overlay3 {
+  0% { opacity: 0; transform: translateX(-100%); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+@keyframes overlay4 {
+  0% { opacity: 0; transform: translateX(100%); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+@keyframes overlay5 {
+  0% { opacity: 0; transform: scale(0.5); filter: blur(8px); }
+  50% { opacity: 0; transform: scale(1.05); filter: blur(2px); }
+  100% { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+@keyframes overlay6 {
+  0% { opacity: 0; transform: scale(0.3); }
+  50% { opacity: 1; transform: scale(1.05); }
+  70% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+
+}
+@keyframes overlay7 {
+  0% { opacity: 0; transform: rotateX(90deg); }
+  100% { opacity: 1; transform: rotateX(0deg); }
+
+}
+@keyframes overlay8 {
+  0% { opacity: 0; transform: scale(0.8, 1.2); filter: blur(3px); }
+  40% { opacity: 1; transform: scale(1.05, 0.85); filter: blur(1.4px); }
+  70% { opacity: 1; transform: scale(0.95, 1.05); filter: blur(0.2px); }
+  100% { opacity: 1; transform: scale(1, 1); filter: blur(0px); }
+}
+@keyframes overlay9 {
+  0% {
+    opacity: 0;
+    transform: translateY(50px) rotateZ(15deg);
+    filter: blur(6px);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-10px) rotateZ(-5deg);
+    filter: blur(1px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotateZ(0deg);
+    filter: blur(0);
+  }
+}
+@keyframes overlay10 {
+  0% {
+    opacity: 0;
+    transform: scale(0.7) translateX(-50px);
+    filter: brightness(0.5);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05) translateX(10px);
+    filter: brightness(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateX(0);
+    filter: brightness(1);
+  }
+}
+@keyframes overlay11 {
+  0% {
+    opacity: 0;
+    transform: perspective(600px) rotateY(90deg);
+  }
+  60% {
+    opacity: 1;
+    transform: perspective(600px) rotateY(-15deg);
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(600px) rotateY(0deg);
+  }
+}
+@keyframes overlay12 {
+  0% {
+    opacity: 0;
+    transform: translateY(30px) scaleY(0.3);
+    filter: drop-shadow(0 0 10px rgba(0,0,0,0.4));
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(-10px) scaleY(1.1);
+    filter: drop-shadow(0 0 2px rgba(0,0,0,0.1));
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+    filter: drop-shadow(0 0 0 rgba(0,0,0,0));
+  }
+}
+</style>
+
+
+</head>
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+
+<body>
+  <div id="loading">⏳ Ждём конфиг от сервера...</div>
+  <div id="container" style="display: none;"></div>
+
+<script>
+    const chat = document.getElementById("container");
+    let pendingConfig = null;
+    let currentConfig = null;
+
+    window.chatMessageTimeout = 60000;
+
+	const animationMap = {
+	  '1': 'overlay',
+	  '2': 'overlay2',
+	  '3': 'overlay3',
+	  '4': 'overlay4',
+	  '5': 'overlay5',
+	  '6': 'overlay6',
+	  '7': 'overlay7',
+	  '8': 'overlay8',
+	  '9': 'overlay9',
+	  '10': 'overlay10',
+	  '11': 'overlay11',
+	  '12': 'overlay12',
+	  'overlay': 'overlay',
+	  'overlay2': 'overlay2',
+	  'overlay3': 'overlay3',
+	  'overlay4': 'overlay4',
+	  'overlay5': 'overlay5',
+	  'overlay6': 'overlay6',
+	  'overlay7': 'overlay7',
+	  'overlay8': 'overlay8',
+	  'overlay9': 'overlay9',
+	  'overlay10': 'overlay10',
+	  'overlay11': 'overlay11',
+	  'overlay12': 'overlay12',
+	};
+
+	function applyConfig(config) {
+	  currentConfig = config;
+	  const { timeout, limit, bgcolor, font } = config;
+
+	  console.log("✅ Применяем конфиг:", config);
+
+	  window.chatMessageTimeout = Number(timeout) || 60000;
+	  window.chatLimit = limit || 50;
+
+	  if (font) {
+		document.documentElement.style.setProperty('--msf-bg', font);
+	  }
+
+	  if (bgcolor) {
+		document.documentElement.style.setProperty('--msg-bg', bgcolor);
+	  }
+
+	  if (config.overlay_index) {
+		const index = config.overlay_index;
+		const animName = animationMap[index] || 'overlay';
+		document.documentElement.style.setProperty('--entry-animation', animName);
+	  }
+
+	  if (chat.style.display !== "flex") {
+		chat.style.display = "flex";
+	  }
+	}
+
+    function connectWebSocket() {
+      const ws = new WebSocket("ws://localhost:8765");
+
+      ws.onopen = () => {
+        console.log("✅ WebSocket подключен");
+        document.getElementById("loading")?.remove();
+      };
+
+      ws.onmessage = (event) => {
+        console.log("RAW message from WS:", event.data);
+
+        if (typeof event.data !== "string" || !event.data.trim().startsWith("{")) {
+          console.warn("Игнорируем не JSON или пустое сообщение:", event.data);
+          return;
+        }
+
+        try {
+          const data = JSON.parse(event.data);
+
+          if (data.target && data.target !== "overlay") return;
+
+          // 🔄 reloadOverlay: меняем переменную анимации
+          if (data.action === 'reloadOverlay') {
+            console.log('🔄 Получен reloadOverlay, меняем анимацию');
+			window.location.reload();
+            fetch('/config')
+              .then(response => response.json())
+              .then(config => {
+                const overlay_index = config.config.overlay_index;
+                const animName = animationMap[overlay_index] || 'overlay';
+                // ✅ Меняем переменную — новые сообщения будут с нужной анимацией
+                document.documentElement.style.setProperty('--entry-animation', animName);
+                // 🧼 Очищаем контейнер
+                chat.innerHTML = '';
+              })
+              .catch(error => {
+                console.error('Ошибка получения конфига:', error);
+              });
+
+            return;
+          }
+
+          // Применение нового config
+          if (data.config) {
+            applyConfig(data.config);
+            return;
+          }
+
+          // Вставка нового сообщения
+		if (data.html) {
+		  const div = document.createElement("div");
+		  div.className = "msg animate-in";
+		  const animNameRaw = currentConfig?.overlay_index || 'overlay';
+		  const realAnimName = animationMap[animNameRaw] || 'overlay';
+		  div.style.animationName = realAnimName;
+		  const temp = document.createElement("div");
+		  temp.innerHTML = data.html.trim();
+		  const content = temp.firstChild;
+		  div.appendChild(content);
+		  chat.insertBefore(div, chat.firstChild);
+
+		  setTimeout(() => {
+			div.classList.add("fade-out-up");
+			setTimeout(() => div.remove(), 900);
+		  }, window.chatMessageTimeout || 60000);
+
+		  return;
+		}
+
+
+          console.warn("Неизвестный тип сообщения:", data);
+        } catch (err) {
+          const errMsg = document.createElement("div");
+          errMsg.className = "msg";
+          errMsg.style.color = "red";
+          errMsg.textContent = "Ошибка разбора сообщения!";
+          chat.insertBefore(errMsg, chat.firstChild);
+          console.error("Ошибка в onmessage:", err, "Данные:", event.data);
+        }
+      };
+
+      ws.onclose = () => {
+        console.warn("❌ WebSocket отключён. Переподключение...");
+        chat.innerHTML = '';
+        const msg = document.createElement("div");
+        msg.id = "loading";
+        msg.textContent = "🔄 Переподключение к чату...";
+        chat.appendChild(msg);
+        setTimeout(connectWebSocket, 4000);
+      };
+
+      ws.onerror = (err) => {
+        console.error("WebSocket ошибка:", err);
+        ws.close();
+      };
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      if (pendingConfig) {
+        applyConfig(pendingConfig);
+        pendingConfig = null;
+      }
+    });
+
+    connectWebSocket();
+</script>
+</body>
+</html>

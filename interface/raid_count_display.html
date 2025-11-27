@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      color: white;
+      font-size: 92px;
+      font-family: sans-serif;
+      text-align: center;
+    }
+  </style>
+</head>
+<body><br>
+  <div id="count">6</div>
+</body>
+</html>
+
+<script>
+  setInterval(() => {
+    const url = window.location.href + '?t=' + Date.now(); // cache-busting
+
+    fetch(url)
+      .then(res => {
+        if (!res.ok) throw new Error('Нет данных');
+        return res.text();
+      })
+      .then(html => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const newUser = doc.getElementById('count')?.innerText;
+        const current = document.getElementById('count');
+
+        if (current && newUser && current.innerText !== newUser) {
+          current.innerText = newUser;  // обновляем ТОЛЬКО если изменилось
+        }
+      })
+      .catch(() => {
+        // Если файл не доступен — НЕ трогаем содержимое,
+        // оставляем старое, чтобы не показывать "ожидание" и не затирать ник
+      });
+  }, 500);
+</script>
+
