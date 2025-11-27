@@ -1,6 +1,0 @@
-const { contextBridge, ipcRenderer } = require('electron');
-
-contextBridge.exposeInMainWorld('electronAPI', {
-  updateWindowSize: (width, height) => ipcRenderer.send('update-window-size', { width, height }),
-  updateZoomFactor: (zoom) => ipcRenderer.send('update-zoom-factor', zoom)
-});
