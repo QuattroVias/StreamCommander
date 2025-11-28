@@ -21,7 +21,13 @@
      onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(102,126,234,0.4)';">
      📥 Скачать StreamCommander v1.1.38
   </a>
+<br>
 
+[//]: # "Большая кнопка, которая реально выглядит как кнопка на GitHub"
+
+<a href="https://github.com/QuattroVias/StreamCommander/releases/download/StreamCommander-1.1.38/StreamCommanderSetup.exe" download>
+  <img src="https://img.shields.io/badge/📥_Скачать_StreamCommander_v1.1.38-7c4dff?style=for-the-badge&logo=windows&logoColor=white&labelColor=5e35b1" alt="Скачать StreamCommander 1.1.38">
+</a>
 ---
 
 ## 📌 Что это?
