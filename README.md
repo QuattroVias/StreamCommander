@@ -1,34 +1,10 @@
 # Stream Commander
 
-**Версия:** 1.1.38  
-
-<a href="https://github.com/QuattroVias/StreamCommander/releases/download/StreamCommander-1.1.38/StreamCommanderSetup.exe" 
-     download 
-     style="display: inline-block; 
-            padding: 16px 40px; 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-            color: white; 
-            font-size: 20px; 
-            font-weight: bold; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            text-decoration: none; 
-            border-radius: 50px; 
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4); 
-            transition: all 0.3s ease; 
-            border: none; 
-            cursor: pointer;"
-     onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 12px 30px rgba(102,126,234,0.6)';"
-     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(102,126,234,0.4)';">
-     📥 Скачать StreamCommander v1.1.38
-  </a>
-<br>
-
-[//]: # "Большая кнопка, которая реально выглядит как кнопка на GitHub"
-
 <a href="https://github.com/QuattroVias/StreamCommander/releases/download/StreamCommander-1.1.38/StreamCommanderSetup.exe" download>
   <img src="https://img.shields.io/badge/📥_Скачать_StreamCommander_v1.1.38-7c4dff?style=for-the-badge&logo=windows&logoColor=white&labelColor=5e35b1" alt="Скачать StreamCommander 1.1.38">
 </a>
----
+
+
 
 ## 📌 Что это?
 
