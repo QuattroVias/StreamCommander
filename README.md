@@ -1,7 +1,7 @@
 # Stream Commander
 
 <a href="https://github.com/QuattroVias/StreamCommander/releases/download/StreamCommander-1.1.38/StreamCommanderSetup.exe" download>
-  <img src="https://img.shields.io/badge/📥_Скачать_StreamCommander_v1.1.38-7c4dff?style=for-the-badge&logo=windows&logoColor=white&labelColor=5e35b1" alt="Скачать StreamCommander 1.1.38">
+  <img src="https://img.shields.io/badge/📥_Скачать_StreamCommander_v1.1.38-7c4dff?style=for-the-badge&logo=windows&logoColor=white&labelColor=5e35b1" alt="Скачать StreamCommander 1.1.66">
 </a>
 
 
